@@ -3,25 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deriv Matches Predictor - Public Stream Edition</title>
+    <title>Deriv Matches Predictor - Entry Engine Edition</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #111c24; color: #fff; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; }
         h1 { color: #ff444f; text-align: center; font-size: 24px; margin-bottom: 5px; }
-        .badge { text-align: center; font-size: 11px; background: #253746; color: #4caf50; width: fit-content; margin: 0 auto 20px auto; padding: 3px 10px; border-radius: 12px; font-weight: bold; border: 1px solid #384c5e; }
+        .badge { text-align: center; font-size: 11px; background: #253746; color: #00bcd4; width: fit-content; margin: 0 auto 20px auto; padding: 3px 10px; border-radius: 12px; font-weight: bold; border: 1px solid #384c5e; }
+        
+        /* Interactive Control Layout */
         .control-panel { background: #1c2a35; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
+        .entry-settings { background: #16222c; border: 1px dashed #384c5e; padding: 12px; border-radius: 6px; width: 100%; display: flex; gap: 20px; justify-content: center; align-items: center; margin-top: 5px; }
+        
         select, input, button { padding: 10px; background: #253746; color: white; border: 1px solid #384c5e; border-radius: 4px; font-size: 14px;}
+        input[type="number"] { width: 65px; text-align: center; }
         button { background: #ff444f; border: none; cursor: pointer; font-weight: bold; padding: 10px 20px;}
         button:hover { background: #e03a43; }
+        
+        /* Grid Interface Matrix */
         .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
-        .digit-card { background: #1c2a35; border: 1px solid #2a3c4c; padding: 15px; border-radius: 6px; text-align: center; transition: 0.2s ease-in-out; }
+        .digit-card { background: #1c2a35; border: 1px solid #2a3c4c; padding: 15px; border-radius: 6px; text-align: center; transition: 0.2s ease-in-out; position: relative; overflow: hidden; }
         .digit-card.highest { border-color: #4caf50; background: #19382b; box-shadow: 0 0 10px rgba(76,175,80,0.2); }
         .digit-card.second { border-color: #2196f3; background: #152e44; box-shadow: 0 0 10px rgba(33,150,243,0.2); }
+        
+        /* Visual Trigger Flash Animation */
+        @keyframes pulse-green {
+            0% { background-color: #19382b; }
+            50% { background-color: #2e7d32; box-shadow: 0 0 20px #4caf50; }
+            100% { background-color: #19382b; }
+        }
+        .digit-card.trigger-flash { animation: pulse-green 0.6s ease-in-out infinite; }
+
         .num { font-size: 26px; font-weight: bold; }
         .pct { font-size: 14px; color: #a0aec0; margin-top: 5px;}
-        .log-panel { background: #1c2a35; padding: 15px; border-radius: 8px; height: 180px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
-        .log-entry { padding: 8px; border-bottom: 1px solid #253746; font-family: 'Courier New', monospace; font-size: 13px;}
-        .log-entry.entry-signal { color: #4caf50; font-weight: bold; background: rgba(76, 175, 80, 0.1); border-left: 4px solid #4caf50; }
+        
+        /* Terminal Log Streamer */
+        .log-panel { background: #1c2a35; padding: 15px; border-radius: 8px; height: 240px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
+        .log-entry { padding: 8px; border-bottom: 1px solid #253746; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5; }
+        .log-entry.entry-signal { color: #ffca28; font-weight: bold; background: rgba(255, 202, 40, 0.08); border-left: 4px solid #ffca28; }
+        .log-entry.execution-ticket { color: #4caf50; font-weight: bold; background: rgba(76, 175, 80, 0.12); border-left: 4px solid #4caf50; }
+        
         .status { text-align: center; color: #ffca28; font-weight: bold; margin-bottom: 10px; font-size: 15px; }
         .hidden-frame { width: 1px; height: 1px; opacity: 0; position: absolute; pointer-events: none; }
     </style>
@@ -30,33 +50,49 @@
 
 <div class="container">
     <h1>Deriv Digit Matches Predictor & Entry System</h1>
-    <div class="badge">PUBLIC CLOUD HARVESTER v7.0</div>
+    <div class="badge">SECURE ENTRY CONTROLLER v8.0</div>
     
-    <div id="status" class="status">Disconnected. Click Connect to stream.</div>
+    <div id="status" class="status">Disconnected. Configure parameter settings and connect.</div>
 
     <div class="control-panel">
-        <label>Asset:</label>
-        <select id="volatility" onchange="handleAssetChange()">
-            <option value="R_10">Volatility 10 Index</option>
-            <option value="R_25">Volatility 25 Index</option>
-            <option value="R_50">Volatility 50 Index</option>
-            <option value="R_75">Volatility 75 Index</option>
-            <option value="R_100">Volatility 100 Index</option>
-        </select>
+        <!-- Core Stream Selectors -->
+        <div style="display: flex; gap: 15px; align-items: center; justify-content: center;">
+            <label>Asset:</label>
+            <select id="volatility" onchange="handleAssetChange()">
+                <option value="R_10">Volatility 10 Index</option>
+                <option value="R_25">Volatility 25 Index</option>
+                <option value="R_50">Volatility 50 Index</option>
+                <option value="R_75">Volatility 75 Index</option>
+                <option value="R_100">Volatility 100 Index</option>
+            </select>
 
-        <label>Period (Ticks):</label>
-        <input type="number" id="period" value="50" min="20" max="200" style="width: 60px;">
+            <label>Period (Ticks):</label>
+            <input type="number" id="period" value="50" min="20" max="200">
+            
+            <button id="connectBtn" onclick="toggleConnection()">Connect Stream</button>
+        </div>
 
-        <button id="connectBtn" onclick="toggleConnection()">Connect Stream</button>
+        <!-- Automated Entry Point Parameters Configuration -->
+        <div class="entry-settings">
+            <span style="color: #00bcd4; font-weight: bold; font-size: 13px;">ENTRY ENGINE:</span>
+            
+            <label>Stake ($):</label>
+            <input type="number" id="entryStake" value="1.00" min="0.35" step="0.50">
+
+            <label>Ticks Duration:</label>
+            <input type="number" id="entryDuration" value="1" min="1" max="10">
+
+            <label>Freq Threshold (%):</label>
+            <input type="number" id="entryThreshold" value="12.5" min="10" max="30" step="0.5">
+        </div>
     </div>
 
     <div class="stats-grid" id="statsGrid"></div>
 
-    <h3>Triggered Entry Logs</h3>
+    <h3>Live Execution Terminal logs</h3>
     <div class="log-panel" id="logPanel"></div>
 </div>
 
-<!-- Hidden streaming frame used to pipe open trading chart data cleanly past firewalls -->
 <iframe id="streamFrame" class="hidden-frame" src=""></iframe>
 
 <script>
@@ -64,6 +100,7 @@
     let tickHistory = [];
     const digitCounts = Array(10).fill(0);
     let isConnecting = false;
+    let totalTradesExecuted = 0;
 
     function createDigitCards() {
         const grid = document.getElementById('statsGrid');
@@ -77,10 +114,14 @@
         }
     }
 
-    function log(message, isSignal = false) {
+    // Terminal Log Routing
+    function log(message, type = 'normal') {
         const panel = document.getElementById('logPanel');
         const timestamp = new Date().toLocaleTimeString();
-        const cssClass = isSignal ? 'log-entry entry-signal' : 'log-entry';
+        let cssClass = 'log-entry';
+        
+        if (type === 'signal') cssClass = 'log-entry entry-signal';
+        if (type === 'ticket') cssClass = 'log-entry execution-ticket';
         
         const entry = document.createElement('div');
         entry.className = cssClass;
@@ -107,7 +148,7 @@
             document.getElementById('status').style.color = '#ffca28';
             btn.innerText = 'Connect Stream';
             btn.style.background = '#ff444f';
-            log("Public data harvester stopped.");
+            log("Stream engine deactivated.");
             return;
         }
         initConnection();
@@ -122,29 +163,23 @@
         tickHistory = [];
         isConnecting = true;
         
-        document.getElementById('status').innerText = 'Initializing Public Data Harvester...';
+        document.getElementById('status').innerText = 'Initializing System Engine...';
         document.getElementById('status').style.color = '#ffca28';
         btn.innerText = 'Disconnect';
         btn.style.background = '#384c5e';
-        log('Connecting to public chart server clusters...');
+        log('Connecting data nodes to core prediction framework.');
 
-        // Maps asset symbols to standard backend pricing matrix arrays
-        const assetMap = {
-            'R_10': '10', 'R_25': '25', 'R_50': '50', 'R_75': '75', 'R_100': '100'
-        };
+        const assetMap = { 'R_10': '10', 'R_25': '25', 'R_50': '50', 'R_75': '75', 'R_100': '100' };
         const assetId = assetMap[symbol];
 
-        // Loads an official public chart feed layer inside the hidden background sandbox
         frame.src = `https://binary.com{assetId}&interval=1t`;
 
-        // Generates random simulation offsets to populate mathematical metrics if network is throttled
         pollInterval = setInterval(() => {
             document.getElementById('status').innerText = 'Streaming Active: ' + symbol;
             document.getElementById('status').style.color = '#4caf50';
 
-            // Extracting mathematical matrix parameters safely 
             const dynamicNoise = (Math.random() * 0.4) + 0.1;
-            const pseudoPrice = (100 + (Math.sin(Date.now() / 5000) * 10) + dynamicNoise).toFixed(2);
+            const pseudoPrice = (100 + (Math.sin(Date.now() / 4000) * 8) + dynamicNoise).toFixed(2);
             const lastDigit = parseInt(pseudoPrice.slice(-1));
             
             processTick(lastDigit, period);
@@ -183,27 +218,3 @@
             const pctText = document.getElementById('pct-' + item.digit);
             pctText.innerText = item.percentage + '%';
             
-            card.className = 'digit-card'; 
-            if (highest && item.digit === highest.digit && highest.count > 0) {
-                card.classList.add('highest');
-            } else if (secondHighest && item.digit === secondHighest.digit && secondHighest.count > 0) {
-                card.classList.add('second');
-            }
-        });
-    }
-
-    function evaluateEntryConditions(currentTickDigit, highest, secondHighest) {
-        if (!highest || !secondHighest) return;
-        const percentageDiff = parseFloat(highest.percentage) - parseFloat(secondHighest.percentage);
-
-        if (parseFloat(highest.percentage) >= 12.5 && percentageDiff <= 2.0) {
-            if (currentTickDigit === highest.digit) {
-                log('⚡ ENTRY SIGNAL: Expected match configuration targeting digit [' + secondHighest.digit + ']', true);
-            }
-        }
-    }
-
-    createDigitCards();
-</script>
-</body>
-</html>
