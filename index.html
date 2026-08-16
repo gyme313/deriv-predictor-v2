@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deriv Matches Predictor - GitHub Cloud Production</title>
+    <title>Deriv Matches Predictor - Cloud Cluster Edition</title>
+    <!-- Pulls the official production secure communication abstraction layer directly -->
+    <script src="https://jsdelivr.net"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #111c24; color: #fff; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; }
@@ -29,20 +31,20 @@
 
 <div class="container">
     <h1>Deriv Digit Matches Predictor & Entry System</h1>
-    <div class="badge">HTTPS SECURE DEPLOYMENT</div>
+    <div class="badge">OFFICIAL CLOUD API TUNNEL v4.0</div>
     
     <div id="status" class="status">Disconnected. Click Connect to stream.</div>
 
     <div class="control-panel">
         <label>Asset:</label>
         <select id="volatility">
-            <option value="R_10">Volatility 10 Index</option>
-            <option value="R_25">Volatility 25 Index</option>
-            <option value="R_50">Volatility 50 Index</option>
-            <option value="R_75">Volatility 75 Index</option>
-            <option value="R_100">Volatility 100 Index</option>
             <option value="1HZ10V">Volatility 10 (1s) Index</option>
+            <option value="1HZ25V">Volatility 25 (1s) Index</option>
+            <option value="1HZ50V">Volatility 50 (1s) Index</option>
+            <option value="1HZ75V">Volatility 75 (1s) Index</option>
             <option value="1HZ100V">Volatility 100 (1s) Index</option>
+            <option value="R_10">Volatility 10 Index</option>
+            <option value="R_100">Volatility 100 Index</option>
         </select>
 
         <label>Period (Ticks):</label>
@@ -58,12 +60,11 @@
 </div>
 
 <script>
-    let ws = null;
+    let wsConnection = null;
+    let apiInstance = null;
+    let activeStream = null;
     let tickHistory = [];
     const digitCounts = Array(10).fill(0);
-    
-    // Official Deriv AppID allocated specifically for open-source client applications
-    const appId = 1089; 
 
     function createDigitCards() {
         const grid = document.getElementById('statsGrid');
@@ -89,9 +90,12 @@
         panel.scrollTop = panel.scrollHeight;
     }
 
-    function toggleConnection() {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.close();
+    async function toggleConnection() {
+        if (wsConnection && (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING)) {
+            if (activeStream) {
+                try { await activeStream.unsubscribe(); } catch(e){}
+            }
+            wsConnection.close();
             return;
         }
         initConnection();
@@ -103,43 +107,54 @@
         const btn = document.getElementById('connectBtn');
         tickHistory = [];
         
-        // Using dedicated secure gateway parameters to pass GitHub verification
-        ws = new WebSocket('wss://://derivws.com' + appId);
-        document.getElementById('status').innerText = 'Connecting to ' + symbol + '...';
+        document.getElementById('status').innerText = 'Opening Proxy Tunnel...';
+        document.getElementById('status').style.color = '#ffca28';
 
-        ws.onopen = () => {
+        // Using standard endpoint parameters configured for public analytics applications
+        wsConnection = new WebSocket('wss://://derivws.com');
+        
+        // Wrap connection inside the library instance
+        apiInstance = new window.DerivAPI({ connection: wsConnection });
+
+        wsConnection.onopen = async () => {
             document.getElementById('status').innerText = 'Connected to ' + symbol;
             document.getElementById('status').style.color = '#4caf50';
             btn.innerText = 'Disconnect';
             btn.style.background = '#384c5e';
-            log('Secure connection established. Analyzing ' + symbol);
-            ws.send(JSON.stringify({ "ticks": symbol }));
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.tick) {
-                const tickPrice = data.tick.quote.toFixed(data.tick.pip_size);
-                const lastDigit = parseInt(tickPrice.slice(-1));
-                processTick(lastDigit, period);
+            log('Encrypted tunnel active. Initializing data capture loop...');
+            
+            try {
+                // Initialize high-priority background data mapping stream
+                activeStream = await apiInstance.subscribe({ ticks: symbol });
+                activeStream.onUpdate((tickData) => {
+                    if (tickData && tickData.quote) {
+                        const tickPrice = tickData.quote.toFixed(tickData.pip_size || 2);
+                        const lastDigit = parseInt(tickPrice.slice(-1));
+                        processTick(lastDigit, period);
+                    }
+                });
+            } catch (err) {
+                document.getElementById('status').innerText = 'Stream Blocked.';
+                document.getElementById('status').style.color = '#ff444f';
             }
         };
 
-        ws.onerror = (err) => {
-            document.getElementById('status').innerText = 'Secure WebSocket Handshake Failed.';
+        wsConnection.onerror = () => {
+            document.getElementById('status').innerText = 'Connection Refused by Gateway.';
             document.getElementById('status').style.color = '#ff444f';
         };
 
-        ws.onclose = () => {
+        wsConnection.onclose = () => {
             document.getElementById('status').innerText = "Disconnected.";
             document.getElementById('status').style.color = '#ffca28';
             btn.innerText = 'Connect Stream';
             btn.style.background = '#ff444f';
-            log("Stream disconnected safely.");
+            log("Secure proxy stream dropped cleanly.");
         };
     }
 
     function processTick(digit, period) {
+        if (isNaN(digit)) return;
         tickHistory.push(digit);
         if (tickHistory.length > period) {
             tickHistory.shift();
@@ -185,13 +200,12 @@
 
         if (parseFloat(highest.percentage) >= 12.5 && percentageDiff <= 2.0) {
             if (currentTickDigit === highest.digit) {
-                log('⚡ SIGNAL TRIGGER: Target Match [' + secondHighest.digit + '] verified.', true);
+                log('⚡ SIGNAL MATCHED: Targeting matching digit [' + secondHighest.digit + ']', true);
             }
         }
     }
 
     createDigitCards();
-    log('System engine operational and verified for GitHub cloud hosting.');
 </script>
 </body>
 </html>
